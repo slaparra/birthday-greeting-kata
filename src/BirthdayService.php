@@ -27,24 +27,17 @@ class BirthdayService
     }
 
     /**
-     * @param $fileName
-     *
-     * @return array
-     */
-    private function loadEmployees()
-    {
-        $this->employeeRepository = $this->employeeRepository;
-
-        return $this->employeeRepository->findAll();
-    }
-
-    /**
      * @param Employee $employee
      */
     private function sendGreeting($employee)
     {
-        $body      = sprintf('Happy Birthday, dear %s!', $employee->getFirstName());
-        $subject   = 'Happy Birthday!';
-        $this->mailer->send(new Message([$employee->getEmail()], $body, $subject, 'sender@here.com'));
+        $message = new Message(
+            [$employee->getEmail()],
+            sprintf('Happy Birthday, dear %s!', $employee->getFirstName()),
+            'Happy Birthday!',
+            'sender@here.com'
+        );
+
+        $this->mailer->send($message);
     }
 }
