@@ -3,14 +3,14 @@
 class BirthdayService
 {
     /** @var Messenger */
-    private $mailer;
+    private $messenger;
 
     /** @var  EmployeeRepository */
     private $employeeRepository;
 
-    public function __construct($mailer, $employeeRepository)
+    public function __construct($messenger, $employeeRepository)
     {
-        $this->mailer             = $mailer;
+        $this->messenger          = $messenger;
         $this->employeeRepository = $employeeRepository;
     }
 
@@ -38,6 +38,6 @@ class BirthdayService
             'sender@here.com'
         );
 
-        $this->mailer->send($message);
+        $this->messenger->send($message);
     }
 }
