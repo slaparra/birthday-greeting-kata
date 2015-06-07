@@ -2,28 +2,25 @@
 
 class AcceptanceTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @var Message[]
-     */
+    /** @var Message[] */
     private $messagesSent = [];
-    /**
-     * @var BirthdayService
-     */
+
+    /** @var BirthdayService */
     private $service;
 
-    /** @var  TestableMailer */
-    private $mailer;
+    /** @var  Messenger */
+    private $messenger;
 
-
+    /** @var  EmployeeRepository */
     private $employeeRepository;
 
     public function setUp()
     {
-        $this->mailer  = new TestableMailer('fake_host', 666);
+        $this->messenger          = new SpyMessenger('fake_host', 666);
         $this->employeeRepository = new InMemoryEmployeeRepository();
 
         $this->service = new BirthdayService(
-            $this->mailer,
+            $this->messenger,
             $this->employeeRepository
         );
     }
@@ -39,7 +36,7 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
     public function willSendGreetings_whenItsSomebodysBirthday()
     {
         $this->service->sendGreetings(new XDate('2008/10/08'));
-        $this->messagesSent = $this->mailer->getMessagesSent();
+        $this->messagesSent = $this->messenger->getMessagesSent();
 
         $this->assertCount(1, $this->messagesSent, 'message not sent?');
         $message = $this->messagesSent[0];
@@ -60,7 +57,7 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
     }
 }
 
-Class TestableMailer implements Messenger
+class SpyMessenger implements Messenger
 {
     /** @var string */
     private $host;
@@ -96,7 +93,7 @@ Class TestableMailer implements Messenger
     }
 }
 
-Class InMemoryEmployeeRepository implements EmployeeRepository
+class InMemoryEmployeeRepository implements EmployeeRepository
 {
     /**
      * @return Employee[]|null
