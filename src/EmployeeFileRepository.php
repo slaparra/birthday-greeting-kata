@@ -3,7 +3,7 @@
 /**
  * Class EmployeeFileRepository
  */
-class EmployeeFileRepository
+class EmployeeFileRepository implements EmployeeRepository
 {
     private $fileHandler;
 

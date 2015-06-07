@@ -3,14 +3,9 @@
 class AcceptanceTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @var int
-     */
-    private static $SMTP_PORT = 25;
-    /**
      * @var Message[]
      */
     private $messagesSent = [];
-
     /**
      * @var BirthdayService
      */
@@ -19,10 +14,18 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
     /** @var  TestableMailer */
     private $mailer;
 
+
+    private $employeeRepository;
+
     public function setUp()
     {
         $this->mailer  = new TestableMailer('fake_host', 666);
-        $this->service = new BirthdayService($this->mailer);
+        $this->employeeRepository = new InMemoryEmployeeRepository();
+
+        $this->service = new BirthdayService(
+            $this->mailer,
+            $this->employeeRepository
+        );
     }
 
     public function tearDown()
@@ -35,7 +38,7 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
      */
     public function willSendGreetings_whenItsSomebodysBirthday()
     {
-        $this->service->sendGreetings(__DIR__ . '/resources/employee_data.txt', new XDate('2008/10/08'));
+        $this->service->sendGreetings(new XDate('2008/10/08'));
         $this->messagesSent = $this->mailer->getMessagesSent();
 
         $this->assertCount(1, $this->messagesSent, 'message not sent?');
@@ -51,7 +54,7 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
      */
     public function willNotSendEmailsWhenNobodysBirthday()
     {
-        $this->service->sendGreetings(__DIR__ . '/resources/employee_data.txt', new XDate('2008/01/01'));
+        $this->service->sendGreetings(new XDate('2008/01/01'));
 
         $this->assertCount(0, $this->messagesSent, 'what? messages?');
     }
@@ -90,5 +93,18 @@ Class TestableMailer implements Messenger
     public function getMessagesSent()
     {
         return $this->msg;
+    }
+}
+
+Class InMemoryEmployeeRepository implements EmployeeRepository
+{
+    /**
+     * @return Employee[]|null
+     */
+    public function findAll()
+    {
+        return [
+            new Employee('John', 'Doe', '1982/10/08', 'john.doe@foobar.com')
+        ];
     }
 }

@@ -5,14 +5,18 @@ class BirthdayService
     /** @var Messenger */
     private $mailer;
 
-    public function __construct($mailer)
+    /** @var  EmployeeRepository */
+    private $employeeRepository;
+
+    public function __construct($mailer, $employeeRepository)
     {
-        $this->mailer  = $mailer;
+        $this->mailer             = $mailer;
+        $this->employeeRepository = $employeeRepository;
     }
 
-    public function sendGreetings($fileName, XDate $xDate)
+    public function sendGreetings(XDate $xDate)
     {
-        $employees = $this->loadEmployees($fileName);
+        $employees = $this->employeeRepository->findAll();
 
         /** @var Employee $employee */
         foreach ($employees as $employee) {
@@ -27,9 +31,11 @@ class BirthdayService
      *
      * @return array
      */
-    private function loadEmployees($fileName)
+    private function loadEmployees()
     {
-        return (new EmployeeFileRepository($fileName))->findAll();
+        $this->employeeRepository = $this->employeeRepository;
+
+        return $this->employeeRepository->findAll();
     }
 
     /**
