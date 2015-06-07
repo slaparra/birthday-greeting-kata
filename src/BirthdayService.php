@@ -12,9 +12,13 @@ class BirthdayService
         $fileHandler = fopen($fileName, 'r');
         fgetcsv($fileHandler);
 
+        $employees = [];
         while ($employeeData = fgetcsv($fileHandler, null, ',')) {
             $employeeData = array_map('trim', $employeeData);
-            $employee = new Employee($employeeData[1], $employeeData[0], $employeeData[2], $employeeData[3]);
+            $employees[] = new Employee($employeeData[1], $employeeData[0], $employeeData[2], $employeeData[3]);
+        }
+        
+        foreach ($employees as $employee) {
             if ($employee->isBirthday($xDate)) {
                 $recipient = $employee->getEmail();
                 $body = sprintf('Happy Birthday, dear %s!', $employee->getFirstName());
