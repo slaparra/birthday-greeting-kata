@@ -23,7 +23,10 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
             $this->messagesSent[] = $msg;
         };
 
-        $this->service = new TestableBirthdayService();
+        $this->service = new TestableBirthdayService(
+            new TestableMailer('fake_host', 666)
+        );
+
         $this->service->setMessageHandler($messageHandler->bindTo($this));
     }
 
@@ -65,6 +68,13 @@ class TestableBirthdayService extends BirthdayService
      */
     private $callback;
 
+    private $mailer;
+
+    public function __construct($mailer)
+    {
+        $this->mailer = $mailer;
+    }
+
     public function setMessageHandler(Closure $callback)
     {
         $this->callback = $callback;
@@ -76,5 +86,28 @@ class TestableBirthdayService extends BirthdayService
     {
         $callable = $this->callback;
         $callable($msg);
+    }
+}
+
+Class TestableMailer implements Messenger
+{
+    /** @var string */
+    private $host;
+
+    /** @var int */
+    private $port;
+
+    public function __construct($host, $port)
+    {
+        $this->host = $host;
+        $this->port = $port;
+    }
+
+    /**
+     * @param $msg
+     */
+    public function send(Swift_Message $msg)
+    {
+        return;
     }
 }

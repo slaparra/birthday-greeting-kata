@@ -3,26 +3,29 @@
 class BirthdayService
 {
     /**
-     * @var Swift_Mailer
+     * @var Messenger
      */
     private $mailer;
 
-    public function sendGreetings($fileName, XDate $xDate, $smtpHost, $smtpPort)
+    public function __construct($mailer)
+    {
+        $this->mailer = $mailer;
+    }
+
+    public function sendGreetings($fileName, XDate $xDate)
     {
         $employees = $this->loadEmployees($fileName);
 
+        /** @var Employee $employee */
         foreach ($employees as $employee) {
             if ($employee->isBirthday($xDate)) {
-                $this->sendGreeting($smtpHost, $smtpPort, $employee);
+                $this->sendGreeting($employee);
             }
         }
     }
 
-    private function sendMessage($smtpHost, $smtpPort, $sender, $subject, $body, $recipient)
+    private function sendMessage($sender, $subject, $body, $recipient)
     {
-        // Create a mail session
-        $this->mailer = Swift_Mailer::newInstance(Swift_SmtpTransport::newInstance($smtpHost, $smtpPort));
-
         // Construct the message
         $msg = Swift_Message::newInstance($subject);
         $msg
@@ -61,14 +64,12 @@ class BirthdayService
     }
 
     /**
-     * @param $smtpHost
-     * @param $smtpPort
-     * @param $employee
+     * @param Employee $employee
      */
-    private function sendGreeting($smtpHost, $smtpPort, $employee)
+    private function sendGreeting($employee)
     {
         $body      = sprintf('Happy Birthday, dear %s!', $employee->getFirstName());
         $subject   = 'Happy Birthday!';
-        $this->sendMessage($smtpHost, $smtpPort, 'sender@here.com', $subject, $body, $employee->getEmail());
+        $this->sendMessage('sender@here.com', $subject, $body, $employee->getEmail());
     }
 }
