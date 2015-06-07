@@ -6,9 +6,8 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
      * @var int
      */
     private static $SMTP_PORT = 25;
-
     /**
-     * @var Swift_Message[]
+     * @var Message[]
      */
     private $messagesSent = [];
 
@@ -17,17 +16,13 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
      */
     private $service;
 
+    /** @var  TestableMailer */
+    private $mailer;
+
     public function setUp()
     {
-        $messageHandler = function (Swift_Message $msg) {
-            $this->messagesSent[] = $msg;
-        };
-
-        $this->service = new TestableBirthdayService(
-            new TestableMailer('fake_host', 666)
-        );
-
-        $this->service->setMessageHandler($messageHandler->bindTo($this));
+        $this->mailer  = new TestableMailer('fake_host', 666);
+        $this->service = new BirthdayService($this->mailer);
     }
 
     public function tearDown()
@@ -40,14 +35,15 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
      */
     public function willSendGreetings_whenItsSomebodysBirthday()
     {
-        $this->service->sendGreetings(__DIR__ . '/resources/employee_data.txt', new XDate('2008/10/08'), 'localhost', static::$SMTP_PORT);
+        $this->service->sendGreetings(__DIR__ . '/resources/employee_data.txt', new XDate('2008/10/08'));
+        $this->messagesSent = $this->mailer->getMessagesSent();
 
         $this->assertCount(1, $this->messagesSent, 'message not sent?');
         $message = $this->messagesSent[0];
-        $this->assertEquals('Happy Birthday, dear John!', $message->getBody());
-        $this->assertEquals('Happy Birthday!', $message->getSubject());
-        $this->assertCount(1, $message->getTo());
-        $this->assertEquals('john.doe@foobar.com', array_keys($message->getTo())[0]);
+        $this->assertEquals('Happy Birthday, dear John!', $message->body());
+        $this->assertEquals('Happy Birthday!', $message->subject());
+        $this->assertCount(1, $message->to());
+        $this->assertEquals('john.doe@foobar.com', array_keys($message->to())[0]);
     }
 
     /**
@@ -55,37 +51,9 @@ class AcceptanceTest extends PHPUnit_Framework_TestCase
      */
     public function willNotSendEmailsWhenNobodysBirthday()
     {
-        $this->service->sendGreetings(__DIR__ . '/resources/employee_data.txt', new XDate('2008/01/01'), 'localhost', static::$SMTP_PORT);
+        $this->service->sendGreetings(__DIR__ . '/resources/employee_data.txt', new XDate('2008/01/01'));
 
         $this->assertCount(0, $this->messagesSent, 'what? messages?');
-    }
-}
-
-class TestableBirthdayService extends BirthdayService
-{
-    /**
-     * @var Closure
-     */
-    private $callback;
-
-    private $mailer;
-
-    public function __construct($mailer)
-    {
-        $this->mailer = $mailer;
-    }
-
-    public function setMessageHandler(Closure $callback)
-    {
-        $this->callback = $callback;
-
-        return $this;
-    }
-
-    protected function doSendMessage(Swift_Message $msg)
-    {
-        $callable = $this->callback;
-        $callable($msg);
     }
 }
 
@@ -97,6 +65,9 @@ Class TestableMailer implements Messenger
     /** @var int */
     private $port;
 
+    /** @var  Message[] */
+    private $msg;
+
     public function __construct($host, $port)
     {
         $this->host = $host;
@@ -104,10 +75,20 @@ Class TestableMailer implements Messenger
     }
 
     /**
-     * @param $msg
+     * @inheritdoc
      */
-    public function send(Swift_Message $msg)
+    public function send(Message $msg)
     {
+        $this->msg[] = $msg;
+
         return;
+    }
+
+    /**
+     * @return Message[]
+     */
+    public function getMessagesSent()
+    {
+        return $this->msg;
     }
 }

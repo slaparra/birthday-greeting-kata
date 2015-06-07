@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Class Mailer
+ * Class SwiftMailer
  *
  * @package greeting
  */
-class Mailer implements Messenger
+class SwiftMailer implements Messenger
 {
     public function __construct($smtpHost, $smtpPort)
     {
@@ -15,8 +15,13 @@ class Mailer implements Messenger
     /**
      * @inheritdoc
      */
-    public function send(Swift_Message $msg)
+    public function send(Message $msg)
     {
+        $msg = Swift_Message::newInstance($msg->subject())
+            ->setFrom($msg->from())
+            ->setTo([$msg->to()])
+            ->setBody($msg->body());
+
         $this->mailer->send($msg);
     }
 }

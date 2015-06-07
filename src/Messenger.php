@@ -8,7 +8,7 @@
 interface Messenger
 {
     /**
-     * @param $msg
+     * @param Message $msg
      */
-    public function send(Swift_Message $msg);
+    public function send(Message $msg);
 }
