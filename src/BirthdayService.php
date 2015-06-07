@@ -31,13 +31,21 @@ class BirthdayService
      */
     private function sendGreeting($employee)
     {
-        $message = new Message(
+        $this->messenger->send($this->buildBirthdayMessage($employee));
+    }
+
+    /**
+     * @param Employee $employee
+     *
+     * @return Message
+     */
+    private function buildBirthdayMessage($employee)
+    {
+        return new Message(
             [$employee->getEmail()],
             sprintf('Happy Birthday, dear %s!', $employee->getFirstName()),
             'Happy Birthday!',
             'sender@here.com'
         );
-
-        $this->messenger->send($message);
     }
 }
